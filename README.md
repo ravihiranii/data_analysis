@@ -60,15 +60,13 @@ here we have business analysis operation questions related to our data:
 
 The project offers a comprehensive view of customer behavior and preferences across various dimensions:
 
-- Demographics: Majority of customers, primarily men aged 25 to 60.
+- Demographics: Majority of customers are Men and popular Age Group is Adult(30 to 60).
 - Top-selling Items: Clothing and accessories, especially pants, blouses, and jewelry.
 - Seasonal Trends: Spring and fall emerge as peak purchase seasons.
-- Purchase Patterns: Customers prefer spending around 3800 to 4800, mostly annually or quarterly.
+- Purchase Patterns: Adult Age Group(30 to 60) customers are Purchasing most, mostly annually or quarterly.
 - Promotional Usage: Non-promo code users outnumber promo code users.
 - Product Reviews: Gloves, sandals, and boots receive higher ratings within the 3.5 to 4.9 range.
-- Preferences by Size and Color: Sizes M, XL, and S are popular, with females favoring yellow and men preferring silver.
+- Preferences by Size and Color: M Size are popular, with females favoring yellow and men preferring silver.
 - Payment Methods: Credit cards are the most used, while subscriptions and discounts see lower usage.
 - Geographical Insights: Montana, California, Illinois, Idaho, and Nevada are top-selling states, each with unique shipping methods.
-
-
 

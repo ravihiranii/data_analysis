@@ -18,23 +18,38 @@ print(df.info())
 # Printing columns of dataframe
 print(df.columns)
 
+# Creating a Age Group column:
+def categorize_age(Age):
+    if Age < 20:
+        return 'Teenager'
+    elif Age >= 20 and Age < 30:
+        return 'Young Adult'
+    elif Age >= 30 and Age < 60:
+        return 'Adult'
+    else:
+        return 'Senior'
 
+df['Age Group'] = df['Age'].apply(categorize_age)
+print(df['Age Group'].head())
+
+'''
 # EXPLORATORY DATA ANALYSIS:
 
 # 1. Customer Demographics:
 
 # Q-1.1 What is the distribution of customers by age and gender?
 
-# Using a Groupby to make a Age & Gender group
-groupby_age_gender = df.groupby(['Age','Gender']).size().unstack()
-print(groupby_age_gender)
+age_n_gender = df.groupby(['Age Group', 'Gender']).size()
+print(age_n_gender)
 
-# Plotting the result
-groupby_age_gender.plot(kind='bar', stacked=True, figsize=(12, 6))
+sns.set(rc={'figure.figsize':(10,8)})
+ax = sns.countplot(data=df, x='Age Group', hue='Gender')
+for bars in ax.containers:
+    ax.bar_label(bars)
+
 plt.title('Distribution of Customers by Age and Gender')
-plt.xlabel('Age')
 plt.ylabel('Count')
-plt.legend(title='Gender', loc='upper right')
+plt.tight_layout()
 plt.show()
 
 
@@ -58,7 +73,7 @@ plt.tight_layout()
 plt.show()
 
 
-# ***Most customers fall within the age range of 25 to 60, and the majority of customers are men.
+# ***Most customers fall within the Adult age group, and the majority of customers are men.
 # Additionally, cities like Montana, California, Illinois, and Idaho have a higher number of customers.***
 
 
@@ -161,14 +176,15 @@ plt.title('Frequency of the purchases by customers')
 plt.ylabel('Count')
 plt.show()
 
-
+'''
 # Q-3.2 Is there a correlation between the frequency of purchases and age?
 
-freq_of_purchase_by_age = df.groupby(['Age'],as_index=False)['Purchase Amount (USD)'].sum()
-print(freq_of_purchase_by_age)
+age_n_purchase = df.groupby('Age Group')['Purchase Amount (USD)'].sum()
+print(age_n_purchase)
 
-sns.set(rc={'figure.figsize':(12,8)})
-sns.jointplot(x='Age',y='Purchase Amount (USD)',data=freq_of_purchase_by_age)
+plt.pie(age_n_purchase, autopct='%1.1f%%', startangle=90, labels=age_n_purchase.index)
+plt.title('Frequency of Purchase by Age Group')
+plt.axis('equal')
 plt.show()
 
 # Q-3.3 Do customers who use promo codes tend to make larger purchases?
@@ -188,7 +204,7 @@ plt.axis('equal')
 plt.show()
 
 
-# ***Most customers prefer making annual or quarterly purchases, typically spending between 3800 to 4800.
+# ***Most customers prefer making annual or quarterly purchases, and adults are purchasing more,
 # Non-promo code users outnumber those using promo codes.***
 
 
@@ -378,25 +394,7 @@ result = get_popular_shipping_type_by_loc(df.copy())
 
 # 7. Customer Retention:
 
-# Q-7.1 What is the rate of repeat customers based on previous purchases?
-
-repeat_customer = df.groupby('Previous Purchases').size()
-print(repeat_customer)
-
-no_of_purchases = range(1,51)
-
-plt.figure(figsize=(10,8))
-repeat_customer.plot(kind='area')
-plt.title('Rate of Repeat Customers')
-plt.xticks(no_of_purchases, rotation='vertical')
-plt.xlabel('Previous Purchases')
-plt.ylabel('Count of Purchases')
-plt.ylim(50,None)
-plt.grid()
-plt.show()
-
-
-# Q-7.2 Are there patterns in the types of items that lead to repeat purchases?
+# Q-7.1 Are there patterns in the types of items that lead to repeat purchases?
 
 repeat_item = df.groupby('Item Purchased').size().sort_values(ascending=False)
 print(repeat_item)
@@ -501,10 +499,10 @@ print(max_counts)
 
 # Most size prefer by customer age:
 # Calculate the count for each Age and Size combination
-size_pre_by_age = df.groupby(['Age','Size']).size().reset_index(name='Count')
+size_pre_by_age = df.groupby(['Age Group','Size']).size().reset_index(name='Count')
 
 # Find the index of maximum count for each Age
-count_idx = size_pre_by_age.groupby('Age')['Count'].idxmax()
+count_idx = size_pre_by_age.groupby('Age Group')['Count'].idxmax()
 
 # Filtering the rows with maximum count for each Age
 max_counts = size_pre_by_age.loc[count_idx]
@@ -512,10 +510,10 @@ print(max_counts)
 
 # Most color prefer by customer age:
 # Calculate the count for each age and color combination
-color_pre_by_age = df.groupby(['Age','Color']).size().reset_index(name='Count')
+color_pre_by_age = df.groupby(['Age Group','Color']).size().reset_index(name='Count')
 
 # Find the index of maximum count for each Age
-count_idx = color_pre_by_age.groupby('Age')['Count'].idxmax()
+count_idx = color_pre_by_age.groupby('Age Group')['Count'].idxmax()
 
 # Filtering the rows with maximum count for each Age
 max_counts = color_pre_by_age.loc[count_idx]
@@ -554,13 +552,13 @@ print(max_counts)
 
 The project offers a comprehensive view of customer behavior and preferences across various dimensions:
 
-- Demographics: Majority of customers, primarily men aged 25 to 60.
+- Demographics: Majority of customers are Men and popular Age Group is Adult(30 to 60).
 - Top-selling Items: Clothing and accessories, especially pants, blouses, and jewelry.
 - Seasonal Trends: Spring and fall emerge as peak purchase seasons.
-- Purchase Patterns: Customers prefer spending around 3800 to 4800, mostly annually or quarterly.
+- Purchase Patterns: Adult Age Group(30 to 60) customers are Purchasing most, mostly annually or quarterly.
 - Promotional Usage: Non-promo code users outnumber promo code users.
 - Product Reviews: Gloves, sandals, and boots receive higher ratings within the 3.5 to 4.9 range.
-- Preferences by Size and Color: Sizes M, XL, and S are popular, with females favoring yellow and men preferring silver.
+- Preferences by Size and Color: M Size are popular, with females favoring yellow and men preferring silver.
 - Payment Methods: Credit cards are the most used, while subscriptions and discounts see lower usage.
 - Geographical Insights: Montana, California, Illinois, Idaho, and Nevada are top-selling states, each with unique shipping methods.
 '''
