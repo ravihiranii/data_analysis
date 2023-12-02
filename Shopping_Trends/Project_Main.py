@@ -9,15 +9,17 @@ import seaborn as sns
 df = pd.DataFrame()
 
 # Read a CSV File through a Pandas
-df = pd.read_csv('shopping_trends_updated.csv')
+df = pd.read_csv('shopping_trends_updated.csv',encoding='unicode escape')
 print(df.head())
+
+# Info shows the data columns, data types and null value
+print(df.info())
 
 # Printing columns of dataframe
 print(df.columns)
 
 
-
-
+# EXPLORATORY DATA ANALYSIS:
 
 # 1. Customer Demographics:
 
@@ -39,21 +41,25 @@ plt.show()
 # Q-1.2 How is the distribution of customers across different locations?
 
 # Count the distribution of customer by Location
-location = df.groupby('Location').size()
+location = df.groupby(['Location'],as_index=False).size()
 print(location)
 
 # Plotting the result
-loc = [location for location, df in df.groupby('Location')]
 
-plt.figure(figsize=(12,6))
-plt.bar(loc,df.groupby('Location').size(), color='b', label='States')
-plt.xticks(loc, rotation='vertical', size=8)
+sns.set(rc={'figure.figsize':(12,8)})
+ax = sns.countplot(x='Location',data=df)
+for bars in ax.containers:
+    ax.bar_label(bars)
+plt.xticks(rotation='vertical')
 plt.title('Distribution of Customers by Location')
-plt.xlabel('Location')
-plt.ylabel('No.of Customer')
-plt.legend()
+plt.ylim(50,None)
+plt.ylabel('Count')
 plt.tight_layout()
 plt.show()
+
+
+# ***Most customers fall within the age range of 25 to 60, and the majority of customers are men.
+# Additionally, cities like Montana, California, Illinois, and Idaho have a higher number of customers.***
 
 
 
@@ -63,18 +69,17 @@ plt.show()
 
 # Q-2.1 What are the most purchased items and categories?
 
-# Count the Purchase by grouping items and categories
-most_purchase = df.groupby(['Category','Item Purchased']).size()
+# Count the most purchased items and categories by grouping
+most_purchase = df.groupby(['Category','Item Purchased']).size().reset_index(name='Count').sort_values(by='Count',ascending=False)
 print(most_purchase)
 
 # Plotting the result
-plt.figure(figsize=(10, 6))
-most_purchase.plot(kind='bar', color='skyblue')
-plt.xlabel('Category')
-plt.ylabel('Count')
-plt.title('Number of Items Purchased in Each Category')
-plt.xticks(rotation=45)  # Rotates the x-axis labels for better readability
+sns.set(rc={'figure.figsize':(12,8)})
+sns.barplot(data=most_purchase, x='Item Purchased',y='Count', hue='Category')
+plt.xticks(rotation = 'vertical')
+plt.title('Count of Items Purchased in Each Category')
 plt.tight_layout()
+plt.legend(loc='upper right')
 plt.show()
 
 # Print the most top 10 purchased items and categories:
@@ -88,20 +93,21 @@ for category, item in top_10_items_and_category.index:
 
 # Q-2.2 How does the purchase amount vary across different items and categories?
 
-# Calculate the Purchase Amount by Different Items
-amount_by_items = df.groupby('Item Purchased')['Purchase Amount (USD)'].sum()
-print(amount_by_items)
+# Count the sum of Purchase Amount by Different Items & Category
+purchase_amount = df.groupby(['Category','Item Purchased'],as_index=False)['Purchase Amount (USD)'].sum()
+print(purchase_amount)
 
-# Plotting the result
-amount_by_items.plot(kind='bar', figsize=(10,8))
+sns.set(rc={'figure.figsize':(12,8)})
+sns.barplot(data=purchase_amount, x='Item Purchased', y='Purchase Amount (USD)',hue='Category')
+plt.xticks(rotation = 'vertical')
 plt.title('Amount of purchase by different items')
-plt.xlabel('Items')
-plt.ylabel('Amount in US($)')
 plt.tight_layout()
+plt.ylim(5000,None)
+plt.legend(loc='upper right')
 plt.show()
 
-# Calculate the Purchase Amount by Different Category
-amount_by_categories = df.groupby('Category')['Purchase Amount (USD)'].sum()
+# Calculate the Distribution of Purchase Amount by Different Category
+amount_by_categories = df.groupby(['Category'])['Purchase Amount (USD)'].sum()
 print(amount_by_categories)
 
 # Plotting the result
@@ -111,21 +117,26 @@ plt.title('Percentage of Amount Purchase by Different Categories')
 plt.axis('equal')
 plt.show()
 
-
-#    Q-2.3 Are there any seasonal trends in purchasing behavior?
+# Q-2.3 Are there any seasonal trends in purchasing behavior?
 
 # Calculate the Purchase amount on Seasonal Trends
-seasonal_trends = df.groupby('Season')['Purchase Amount (USD)'].sum()
+seasonal_trends = df.groupby(['Season'],as_index=False)['Purchase Amount (USD)'].sum()
 print(seasonal_trends)
 
 # Plotting the result
-plt.figure(figsize=(10,6))
-seasonal_trends.plot(kind='bar')
+sns.set(rc={'figure.figsize':(10,6)})
+ax = sns.barplot(data=seasonal_trends, x='Season', y='Purchase Amount (USD)')
+
+for bars in ax.containers:
+    ax.bar_label(bars)
+
+plt.ylim(40000,None)
 plt.title('Amount of Purchase by Seasons')
-plt.xlabel('Seasons')
-plt.ylabel('Purchase Amount in US($)')
 plt.tight_layout()
 plt.show()
+
+# ***Top-selling items include pants, blouses, and jewelry, with clothing & accessories dominating sales.
+# Spring and fall emerge as peak seasons for purchases.***
 
 
 
@@ -136,50 +147,49 @@ plt.show()
 # Q-3.1 How frequently do customers make purchases?
 
 # Count the frequency of the purchases
-freq_of_purchase = df.groupby('Frequency of Purchases').size()
+freq_of_purchase = df.groupby(['Frequency of Purchases'],as_index=False).size()
 print(freq_of_purchase)
+
+sns.set(rc={'figure.figsize':(10,6)})
+ax = sns.countplot(data=df,x='Frequency of Purchases')
+
+for bars in ax.containers:
+    ax.bar_label(bars)
+
+plt.ylim(500,None)
+plt.title('Frequency of the purchases by customers')
+plt.ylabel('Count')
+plt.show()
 
 
 # Q-3.2 Is there a correlation between the frequency of purchases and age?
 
-freq_of_purchase_by_age = df.groupby('Age')['Previous Purchases'].sum()
+freq_of_purchase_by_age = df.groupby(['Age'],as_index=False)['Purchase Amount (USD)'].sum()
 print(freq_of_purchase_by_age)
 
-# Creating a line plot
-plt.figure(figsize=(10, 6))
-freq_of_purchase_by_age.plot(kind='line', marker='o')  # Line plot with markers at data points
-plt.xlabel('Age')
-plt.ylabel('Total Previous Purchases')
-plt.title('Total Previous Purchases by Age')
-plt.grid(True)  # Adding gridlines for better readability
+sns.set(rc={'figure.figsize':(12,8)})
+sns.jointplot(x='Age',y='Purchase Amount (USD)',data=freq_of_purchase_by_age)
 plt.show()
-
-# Find Correlation Co-efficient   
-correlation_coefficient = df['Age'].corr(df['Previous Purchases'])
-print(correlation_coefficient)
-
-# Plotting result 
-plt.figure(figsize=(6, 4))
-sns.heatmap(data=df[['Age', 'Previous Purchases']].corr(), annot=True, cmap='coolwarm', fmt='.2f')
-plt.title('Correlation Heatmap: Age vs Previous Purchases')
-plt.show()
-
 
 # Q-3.3 Do customers who use promo codes tend to make larger purchases?
 
 count_promo_user = df.groupby('Promo Code Used').size()
 print(count_promo_user)
 
-share_of_promouser_in_purchase = df.groupby('Promo Code Used')['Purchase Amount (USD)'].sum()
-print(share_of_promouser_in_purchase)
+share_of_promo_user_in_purchase = df.groupby('Promo Code Used')['Purchase Amount (USD)'].sum()
+print(share_of_promo_user_in_purchase)
 
-share_of_promouser_in_purchase.index = ['Non-Promo Code User', 'Promo Code User']
+share_of_promo_user_in_purchase.index = ['Non-Promo Code User', 'Promo Code User']
 
 plt.figure(figsize=(10,8))
-plt.pie(share_of_promouser_in_purchase,autopct='%1.1f%%',labels=share_of_promouser_in_purchase.index,startangle=90)
+plt.pie(share_of_promo_user_in_purchase,autopct='%1.1f%%',labels=share_of_promo_user_in_purchase.index,startangle=90)
 plt.title('Percentage of Total Purchased Amount by Promo-Non Promo User')
 plt.axis('equal')
 plt.show()
+
+
+# ***Most customers prefer making annual or quarterly purchases, typically spending between 3800 to 4800.
+# Non-promo code users outnumber those using promo codes.***
 
 
 
@@ -190,51 +200,31 @@ plt.show()
 
 # Q-4.1: What is the average review rating for different items and categories?
 
-# Average Review Rating by Different Items
-review_rating_by_items = df.groupby('Item Purchased')['Review Rating'].mean().reset_index()
+# Average Review Rating by Different Items & Category
+review_rating_by_items = df.groupby(['Item Purchased','Category'],as_index=False)['Review Rating'].mean()
 print(review_rating_by_items)
 
 # Plotting a result with seaborn barplot
-plt.figure(figsize=(10,8))
-sns.barplot(x='Item Purchased',y='Review Rating',data=review_rating_by_items)
+sns.set(rc={'figure.figsize':(10,6)})
+sns.barplot(x='Item Purchased',y='Review Rating',data=review_rating_by_items, hue='Category')
 plt.title('Average of Review Ratings by Different Items')
-plt.xlabel('Items')
-plt.ylabel('Ratings')
-plt.xticks(rotation=45)
+plt.ylim(3.0,None)
+plt.ylabel('Average value of Ratings')
+plt.xticks(rotation='vertical')
 plt.tight_layout()
 plt.show()
-
-# Average Review Rating by Different Category
-review_rating_by_category = df.groupby('Category')['Review Rating'].mean().reset_index()
-print(review_rating_by_category)
-
-# Plotting a result with seaborn barplot
-plt.figure(figsize=(6,6))
-sns.barplot(x='Category',y='Review Rating', data=review_rating_by_category)
-plt.title('Average of Review Ratings by Different Category')
-plt.xlabel('Category')
-plt.ylabel('Ratings')
-plt.tight_layout()
-plt.show()
-
 
 
 # Q-4.2: Is there a relationship between the review rating and the purchase amount?
 
-# Get the correlation co-efficient
-relation_status = df[[ 'Purchase Amount (USD)','Review Rating']]
-correlation = relation_status.corr('pearson')
-print(correlation)
+grouped_data_sum = df.groupby(['Review Rating'],as_index=False)['Purchase Amount (USD)'].sum()
+print(grouped_data_sum)
 
-
-grouped_data = df.groupby('Review Rating')['Purchase Amount (USD)'].mean().reset_index()
-print(grouped_data)
-
-plt.figure(figsize=(10, 6))
-sns.swarmplot(x=grouped_data['Review Rating'], y=grouped_data['Purchase Amount (USD)'], data=df)
-plt.title('Average of Purchase Amount Distribution by Review Rating')
-plt.xlabel('Review Rating')
-plt.ylabel('Purchase Amount (USD)')
+sns.set(rc={'figure.figsize':(10,8)})
+sns.barplot(x='Review Rating',y='Purchase Amount (USD)',data=grouped_data_sum, palette='viridis')
+plt.title('Relation between Review Rating and Purchase Amount')
+plt.ylim(3000,None)
+plt.tight_layout()
 plt.show()
 
 
@@ -252,22 +242,25 @@ plt.axis('equal')
 plt.show()
 
 
-# Review Rating By Different Colors 
-color_review_rating = df.groupby('Color')['Review Rating'].mean().sort_values(ascending=False).reset_index()
-print(color_review_rating)
+# Review Rating By Different Colors
+color_review_rating = df.groupby(['Color'],as_index=False)['Review Rating'].mean().sort_values(by='Review Rating',ascending=False)
 
 # Print the TOP-5 Colors by Review Ratings
 print(color_review_rating.head(5))
 
 # Plotting the result
-plt.figure(figsize=(10,8))
+sns.set(rc={'figure.figsize':(10,8)})
 sns.barplot(x='Color',y='Review Rating',data=color_review_rating, palette='viridis')
 plt.title('Popular Colors by Review Rating')
-plt.xticks(rotation=45)
+plt.xticks(rotation='vertical')
 plt.xlabel('Colors')
 plt.ylabel('Review Rating')
+plt.ylim(3.0,None)
+plt.tight_layout()
 plt.show()
 
+# ***Gloves, sandals, and boots receive higher review ratings. Customers mostly spend within the review rating range of 3.5 to 4.9,
+# XL and S sizes are popular, along with colors like gray, yellow, magenta, black, and orange, as per review ratings.***
 
 
 
@@ -306,8 +299,13 @@ discount_user = df.groupby('Discount Applied').size()
 print(discount_user)
 
 # Check Relation of User with Purchased amount with respect to Discount Applied
-discount = df.groupby('Discount Applied')['Purchase Amount (USD)'].sum()
+discount = df.groupby(['Discount Applied'],as_index=False)['Purchase Amount (USD)'].sum()
 print(discount)
+
+sns.set(rc={'figure.figsize':(10,6)})
+sns.barplot(data=discount,x='Discount Applied',y='Purchase Amount (USD)')
+plt.title("Distribution of purchasing amount by Discount and Non-Discount User")
+plt.show()
 
 
 # Q-5.3 Are there specific payment methods preferred by subscribers?
@@ -332,6 +330,7 @@ plt.title('Distribution of Payment Method by Subscribe User')
 plt.axis('equal')
 plt.show()
 
+# *** Only 27% customers are using subscription, less customers are using discounts, credit card is most popular payment method.***
 
 
 
@@ -341,11 +340,11 @@ plt.show()
 
 # Q-6.1 Are there any location-specific trends in purchasing behavior?
 
-purchase_by_loc = df.groupby('Location')['Purchase Amount (USD)'].sum().reset_index()
+purchase_by_loc = df.groupby(['Location'],as_index=False)['Purchase Amount (USD)'].sum()
 print(purchase_by_loc)
 
-plt.figure(figsize=(12,8))
-sns.barplot(x=purchase_by_loc['Location'],y=purchase_by_loc['Purchase Amount (USD)'],data=df)
+sns.set(rc={'figure.figsize':(10,8)})
+sns.barplot(x='Location',y='Purchase Amount (USD)',data=purchase_by_loc)
 plt.xticks(rotation='vertical')
 plt.title('Purchasing behaviour by Different Location')
 plt.xlabel('Locations')
@@ -362,7 +361,7 @@ print(location_count)
 
 shipping_type_by_loc = df.groupby(['Location','Shipping Type']).size()
 print(shipping_type_by_loc)
-# Half Solved
+
 
 def get_popular_shipping_type_by_loc(df):
     shipping_type_by_loc = df.groupby(['Location', 'Shipping Type']).size()
@@ -373,7 +372,7 @@ def get_popular_shipping_type_by_loc(df):
 
 result = get_popular_shipping_type_by_loc(df.copy())
 
-
+# ***Montana, California, Illinois, Idaho, and Nevada States are top-selling states. Each city has its unique shipping type.
 
 
 
@@ -408,12 +407,13 @@ print('\nMost Repeat Purchased Items:')
 for item, count in most_sell_items.items():
     print(f"{item} : {count}")
 
-repeat_item = df.groupby('Item Purchased').size().reset_index(name='Count')
-print(repeat_item)
+repeat_item = df.groupby(['Item Purchased']).size().reset_index(name='Count')
 
 #Plotting result
-plt.figure(figsize=(12, 6))
-sns.barplot(x='Item Purchased', y='Count', data=repeat_item, palette='viridis')
+sns.set(rc={'figure.figsize':(12,8)})
+ax = sns.barplot(x='Item Purchased', y='Count', data=repeat_item, palette='viridis')
+for bars in ax.containers:
+    ax.bar_label(bars)
 plt.title('Count of Items Purchased')
 plt.xlabel('Item Purchased')
 plt.ylabel('Count')
@@ -423,7 +423,7 @@ plt.tight_layout()
 plt.show()
 
 
-
+# *** Blouse, Jewelry, Pants, Shirts are most repeated purchased items by customers. ***
 
 
 
@@ -465,7 +465,7 @@ plt.title('Distribution of Purchase Amount by Payment Method ')
 plt.show()
 
 
-
+# *** Paypal and Credit card are most used payment method by customers.
 
 
 
@@ -473,7 +473,7 @@ plt.show()
 
 # Q-9.1 What are the most popular sizes and colors for different items?
 
-# Most Popular Size By Differnt Items:
+# Most Popular Size By Different Items:
 # Calculate the counts for each 'Item Purchased' and 'Size' combination
 popular_size = df.groupby(['Item Purchased', 'Size']).size().reset_index(name='Count')
 
@@ -533,6 +533,7 @@ count_idx = gender_pre_by_age.groupby('Gender')['Count'].idxmax()
 max_counts = gender_pre_by_age.loc[count_idx]
 print(max_counts)
 
+
 # Most color prefer by gender:
 # Calculate the count for each Gender and Color combination
 gender_pre_by_age = df.groupby(['Gender','Color']).size().reset_index(name='Count')
@@ -544,3 +545,22 @@ count_idx = gender_pre_by_age.groupby('Gender')['Count'].idxmax()
 max_counts = gender_pre_by_age.loc[count_idx]
 print(max_counts)
 
+
+# ***The most popular size across genders is M. Yellow is the preferred color for females, while men tend to favor silver.***
+
+
+'''
+*** PROJECT SUMMARY ***
+
+The project offers a comprehensive view of customer behavior and preferences across various dimensions:
+
+- Demographics: Majority of customers, primarily men aged 25 to 60.
+- Top-selling Items: Clothing and accessories, especially pants, blouses, and jewelry.
+- Seasonal Trends: Spring and fall emerge as peak purchase seasons.
+- Purchase Patterns: Customers prefer spending around 3800 to 4800, mostly annually or quarterly.
+- Promotional Usage: Non-promo code users outnumber promo code users.
+- Product Reviews: Gloves, sandals, and boots receive higher ratings within the 3.5 to 4.9 range.
+- Preferences by Size and Color: Sizes M, XL, and S are popular, with females favoring yellow and men preferring silver.
+- Payment Methods: Credit cards are the most used, while subscriptions and discounts see lower usage.
+- Geographical Insights: Montana, California, Illinois, Idaho, and Nevada are top-selling states, each with unique shipping methods.
+'''
